@@ -116,6 +116,7 @@ fim:
 #
 ########################################################################################################
 .kdata
+blackcolor: 		.word 0x00000000
 drawColour:		.word 0xFFAAAAAA		# Store colour to draw objects
 bgColour:		.word 0xFFFFFFFF		# Store colour to draw background
 stageWidth:		.half 256			# Store stage size
@@ -137,14 +138,19 @@ Main:
 #################### Look at this :
 			DrawVLine 0		# nao consegui desenhar essa linha pelo for
 			for ($a0, 64, 900, 136, DrawVLine)
-			nop
+			DrawVLine 1016
+			nop			
 			DrawVLine 1020		# nao consegui desenhar essa linha pelo for
 			nop 
 			for ($a0, 13312, 259100, 10240, DrawHLine)	# a macro DrawHline tem q utilizar o registrador do primeiro parametro 
 			nop				# como seu proprio parametro. No caso, ï¿½ o numero da linha a ser desenhada
 							# Este for apenas funciona para macros que necessitem de UM parametro
-			#DrawHLine 259072		# Last line, Nao consegui colocar no for casando certinho com o fim
-			nop
+			
+			#lw $s6, blackcolor	# barra de titulo
+			#DrawHLine 12288	# barra de titulo
+			#lw $s6, drawColour	# barra de titulo
+			#nop
+			
 			li $s0, 0	#s0 irá armazenar coluna selecionada
 			li $s1, 0	#s1 irá armazenar linha selecionada
 			SelecionaCelula
@@ -195,7 +201,7 @@ GetDir_left:
 		j GetKey_done
 		nop
 GetDir_down:
-		bne, $t0, 115, GetDir_none
+		bne, $t0, 115, GetKey_num
 		nop
 		ori $v0, $zero, 0x04000000	# Down
 		add $s1, $s1, 1
@@ -218,7 +224,9 @@ GetKey_done_4:
 		SelecionaCelula
 		li $t0, 0
 		jr $ra				# Return
-		nop	
+		nop 
+GetKey_num:
+				
 ###############################################################################################################	
 Main_exit:
 			ori $v0, $zero, 10		# Syscall terminate
@@ -244,9 +252,14 @@ FillMemory:
 		sll $a2, $a2, 2			# Multiply by 4
 		add $a2, $a2, $gp		# Add global pointer
 		or $a1, $zero, $gp		# Set loop var to global pointer
+		
+		#lw $s7, blackcolor		# ajustes para primeira linha preta, barra de titulos
+		#add $t0, $gp, 1024		#
 FillMemory_l:	
 		sw $s7, ($a1)
 		add $a1, $a1, 4
+		#blt $a1, $t0, FillMemory_l	# Para tirar a linha preta inicial basta comentar essas linhas
+		#lw $s7, bgColour 		#
 		blt $a1, $a2, FillMemory_l
 		nop
 	
