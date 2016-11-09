@@ -37,7 +37,7 @@ DVL_Loop:
 		add $a2, $a1, $gp		# Add global pointer
 		
 		or $a1, $zero, $gp		# Set loop var to global pointer
-		add $t0, $zero, 1024
+		add $t0, $zero, 1024		# soma 1024 a t0, pq?
 		add $t0, $t0, %x
 		add $a2, $a2, $t0
 		add $a1, $a1, $t0
@@ -47,7 +47,44 @@ DHL_Loop:
 		blt $a1, $a2, DHL_Loop
 		nop
 .end_macro
-#######################################################################################################
+###########################################################################################
+###############################################################################################################
+.macro SelecionaCelula (%sx, %x1, %x2)
+		add $a1, $zero, %x2		# Calculate ending possition
+		add $a2, $a1, $gp		# Add global pointer
+		
+		add $a1, $zero, $gp		# Set loop var to global pointer
+		add $t0, $zero, 1024		# soma 1024 a t0, pq?
+		add $t0, $t0, %x1
+		add $a2, $a2, $t0
+		add $a1, $a1, $t0
+		add $a3, $a1, 8192		# a3 pinta a linha de baixo tracejada, 8192 Ã© o espaÃ§o entre as linhas
+		move $t0, $a1
+DHLT_Loop:
+		sw %sx, ($a1)
+		sw %sx, ($a3)		
+		add $a1, $a1, 8
+		add $a3, $a3, 8		
+		blt $a1, $a2, DHLT_Loop
+		nop
+
+		add $a1, $zero, 256		# Calculate ending possition
+		sll $a3, $a1, 2			# Multiply by 4 to get mem to add
+		
+		move $a1, $t0
+		add $a0, $a1, 120		# a0 desenha a linha tracejada oposta a que $a1 desenha com espaÃ§o de uma celula
+		add $a2, $a1, 9216
+DVTL_Loop:
+		sw %sx, ($a1)			# s6 must have drawColor value
+		sw %sx, ($a0)
+		add $a1, $a1, $a3
+		add $a1, $a1, $a3
+		add $a0, $a0, $a3
+		add $a0, $a0, $a3
+		blt $a1, $a2, DVTL_Loop
+		nop
+.end_macro
+###############################################################################################################
 .macro number (%x, %coord)
 zero:	bne %x, 0, one
 	
@@ -83,64 +120,19 @@ Main:
 			jal FillMemory
 			nop
 #################### Look at this :
-			for ($s0, 0, 896, 128, DrawVLine)
+			for ($a0, 0, 896, 128, DrawVLine)
 			nop
 			DrawVLine 1020		# nao consegui desenhar essa linha pelo for
 			nop 
-			for ($s0, 9216, 256000, 10240, DrawHLine)	# a macro DrawHline tem q utilizar o registrador do primeiro parametro 
-			nop				# como seu proprio parametro. No caso, é o numero da linha a ser desenhada
+			for ($a0, 9216, 256000, 10240, DrawHLine)	# a macro DrawHline tem q utilizar o registrador do primeiro parametro 
+			nop				# como seu proprio parametro. No caso, ï¿½ o numero da linha a ser desenhada
 							# Este for apenas funciona para macros que necessitem de UM parametro
 			DrawHLine 259072		# Last line, Nao consegui colocar no for casando certinho com o fim
 			nop
 ################################################################################################################
-Celula_selecionada:			# Calculos para o tamanho da tela
-	add $t2, $zero, $t5
-	add $t2, $t2, $gp		# Adiciona o ponteiro global em t2
-	
-			
-	or $t1, $zero, $gp		# Coloca o ponteiro global em t1
-	add $t1, $t1, $t5
-	sub $t1, $t1, 124
-	
-Loop_celula:	
-	add $t1, $t1, 8			# Pula para a proxima pagina do t1 (Move um pixel para a direita)
-	sw $s5, ($t1)			# Pinta o pixel da posicao t1
-	
-	blt $t1, $t2, Loop_celula
-	add $t2, $t2, 8192
-
-Loop_celula2:
-	add $t1, $t1, 1928
-	sw $s5, ($t1)			# Pinta o pixel da posicao t1
-	add $t1, $t1, 120			# Pula para a proxima pagina do t1 (Move um pixel para a direita)
-	sw $s5, ($t1)
-
-	blt $t1, $t2, Loop_celula2
-
-	add $t1, $t1, 900
-	add $t2, $t2, 1024
-Loop_celula3:	
-	add $t1, $t1, 8			# Pula para a proxima pagina do t1 (Move um pixel para a direita)
-	sw $s5, ($t1)			# Pinta o pixel da posicao t1
-	
-	blt $t1, $t2, Loop_celula3
-	
-	nop	
-	jr $ra
-
-Celula_branco:			# Calculos para o tamanho da tela
-	#11264 incremento para mudar de linha
-	#128 incremento para mudar de coluna
-	
-#	mflo $t2			# Parâmetro de referência para a função Loop_fundo
-#	sub $t2, $t2, $t2
-	add $t2, $zero, $t5
-	add $t2, $t2, $gp		# Adiciona o ponteiro global em t2
-	
-			
-	or $t1, $zero, $gp		# Coloca o ponteiro global em t1
-	add $t1, $t1, $t5
-	sub $t1, $t1, 124
+Seleciona_Celula:	
+			SelecionaCelula ($s6, 10244, 121)
+			nop			
 ###########################################################################################
 Main_waitLoop:
 			# Wait for the player to press a key
