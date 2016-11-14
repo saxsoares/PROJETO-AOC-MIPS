@@ -15,6 +15,8 @@
 	TraceLineHeight: 	.half 8192
 	OneLine: 		.half 1024
 	BasePrintCel: 		.half 16456
+	BreakCellMsg:		.asciiz "You can't write more than 6 digits"
+	replayMessage:		.asciiz "Back to program?"
 ##############################################################################
 # macro for, recebe (iterator_reg, start_point, end_point, step, color, macro_label)
 # return none
@@ -515,7 +517,7 @@ fim:
 	lw $s0, BgColor	 			# Store background colour in s7
 	xor $s2, $s2, 0				# Store cel to select s2 => colum
 	xor $s3, $s2, 0				# Store cel to select s3 => line
-
+	li $s4, -24
 	# Inicializing Window:
 		lh $a1, stageWidth			# Store WindowWidth in $a1 to pass to for below
 		for ($a0, 0, $a1, 1, $s0, DrawHLine)	# Clear all Display (painting 'stageWidth' white lines)
@@ -583,7 +585,7 @@ GetDir_down:
 		j GetKey_done
 		nop
 GetKey_done:
-		li $s4, 0			# parametro referencia para inicio de impressao de numeros teclados
+		li $s4, -24			# parametro referencia para inicio de impressao de numeros teclados
 		bge $s2, $zero, GetKey_done_1	# se s2 nao for maior que zero
 		li $s2, 5			# entao deve ser a ultima coluna
 		j GetKey_done_2			# va para verificacao de linhas agora
@@ -603,6 +605,8 @@ GetKey_num:
 		ble, $a0, 47, Main_waitLoop
 		bge $a0, 58, Main_waitLoop
  		# getting coordinate to print
+ 		add $s4, $s4, 24		# Atualizando onde vai printar
+ 		bge $s4, 144, Exit		# Digitando mais numeros do que é permitido
  		xor $t0, $t0, $t0		# zerando $t0 para uso
  		xor $t1, $t1, $t1 		# zerando $t1 para uso
  		xor $t3, $t3, $t3		# zerando $t3 para uso
@@ -616,9 +620,41 @@ GetKey_num:
 		add $t2, $t2, $s4		# movendo cursor para proximo digito
 		move $a1, $t2
 print_num: 	number ($a0, $a1)
-		add $s4, $s4, 24
 		nop
 		jal Main_waitLoop		# Do nothing
 GetDir_none:
+Exit:   
+	#play a sound tune to signify game over
+	li $v0, 31
+	li $a0, 28
+	li $a1, 250
+	li $a2, 32
+	li $a3, 127
+	syscall
+		
+	li $a0, 33
+	li $a1, 250
+	li $a2, 32
+	li $a3, 127
+	syscall
+	
+	li $a0, 47
+	li $a1, 1000
+	li $a2, 32
+	li $a3, 127
+	syscall
+	
+	li $v0, 55 #syscall value for dialog
+	la $a0, BreakCellMsg #get message
+	syscall
+	
+	li $v0, 50 #syscall for yes/no dialog
+	la $a0, replayMessage #get message
+	syscall
+	
+	beqz $a0, Main_waitLoop#jump back to start of program
+	#end program
+	li $v0, 10
+	syscall
 
 
