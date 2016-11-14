@@ -7,6 +7,10 @@
 	ble %regIterator, %to, Loop
 .end_macro
 #######################################################################################
+.macro PaintMemory (%x)
+	sw %x, ($a0)
+.end_macro
+#######################################################################################
 .macro DrawVLine (%x)
 
 		add $a1, $zero, 256		# Calculate ending possition
@@ -62,7 +66,7 @@ DHL_Loop:					# começa a printar os pixels da linha
 		add $a2, $a1, $gp		# Add global pointer
 		
 		add $a1, $zero, $gp		# Set loop var to global pointer
-		add $t0, $zero, 1024		# soma 1024 a t0, puma linha abaixo
+		add $t0, $zero, 1024		# soma 1024 a t0, pula linha abaixo
 		add $t0, $t0, 14404
 		add $t0, $t0, %x1
 		add $t0, $t0, %x2
@@ -97,19 +101,53 @@ DVTL_Loop:
 .end_macro
 ###############################################################################################################
 .macro number (%x, %coord)
-zero:	bne %x, 0, one
-
-one: 	bne %x, 1, two
-two:	bne %x, 2, tree
-
-
-tree: 	bne %x, 3, four	
-four:	bne %x, 4, five
-five: 	bne %x, 5, six
-six:	bne %x, 2, seven
-seven: 	bne %x, 3, eight	
-eight:	bne %x, 0, nine
-nine: 	bne %x, 1, fim
+zero:		
+		bne %x, 48, one
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1012
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1028
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1020
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1028
+		sw $s6, ($t1)			# Pinta o pixel da posicao s1
+		jal fim		
+one: 	bne %x, 49, two
+two:	bne %x, 50, tree
+tree: 	bne %x, 51, four	
+four:	bne %x, 52, five
+five: 	bne %x, 53, six
+six:	bne %x, 54, seven
+seven: 	bne %x, 55, eight	
+eight:	bne %x, 56, nine
+nine: 	bne %x, 57, fim
 fim:
 .end_macro
 ########################################################################################################
@@ -130,7 +168,8 @@ Main:
 # Load colour info
 			lw $s6, drawColour		# Store drawing colour in s6
 			lw $s7, bgColour		# Store background colour in s7
-
+			li $s4, 0
+			
 			# Prepare the arena
 			#or $a0, $zero, $s7		# Clear stage to background colour
 			jal FillMemory
@@ -207,9 +246,8 @@ GetDir_down:
 		add $s1, $s1, 1
 		j GetKey_done
 		nop
-GetDir_none:
-						# Do nothing
 GetKey_done:
+		li $s4, 0
 		bge $s0, $zero, GetKey_done_1
 		li $s0, 6
 		j GetKey_done_2
@@ -225,8 +263,23 @@ GetKey_done_4:
 		li $t0, 0
 		jr $ra				# Return
 		nop 
-GetKey_num:
-				
+GetKey_num:	
+		ble, $t0, 47, Main_waitLoop
+		bge $t0, 58, Main_waitLoop
+ 		# getting coordinate to print
+ 		mul $t1, $s0, 136	# msm calculo da celula selecionada, adquirindo coordenada onde imprimit
+		mul $t2, $s1, 10240	# msm calculo da celula selecionada, adquirindo coordenada onde imprimit
+		add $t3, $zero, 16460	# Referencia inicial de onde começa as celulas
+		add $t3, $t3, $t1	# com isso a impressao vai ser na celula selecionada
+		add $t3, $t3, $t2
+		add $t3, $t3, $s4
+print_num: 	number ($t0, $t3)
+		add $s4, $s4, 24
+		nop
+		jal Main_waitLoop		# Do nothing
+GetDir_none:
+
+
 ###############################################################################################################	
 Main_exit:
 			ori $v0, $zero, 10		# Syscall terminate
