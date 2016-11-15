@@ -454,8 +454,8 @@ fim:
 ########################################################################################################
 .kdata
 blackcolor: 		.word 0x00000000
-drawColour:		.word 0xFFAAAAAA		# Store colour to draw objects
-bgColour:		.word 0xFFFFFFFF		# Store colour to draw background
+drawColour:		.word 0xA9A9A9		# Store colour to draw objects
+bgColour:		.word 0xAAFFFFFF		# Store colour to draw background
 stageWidth:		.half 256			# Store stage size
 stageHeight:		.half 256			# Usual settings $gp, 32x32, 16xScaling, 512x512
 oneLine: 		.half 10240

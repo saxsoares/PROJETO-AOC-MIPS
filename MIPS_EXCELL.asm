@@ -5,6 +5,7 @@
 	BlackColor: 		.word 0x00000000
 	DrawColor:		.word 0xFFAAAAAA		# Store colour to draw objects
 	BgColor:		.word 0xFFFFFFFF		# Store colour to draw background
+	GrayColor: 		.word 0x696969
 	stageWidth:		.half 256			# Store stage size
 	stageHeight:		.half 256			# Usual settings $gp, 32x32, 16xScaling, 512x512
 	BaseVLine: 	 	.half 15360
@@ -28,6 +29,20 @@
 	ble %regIterator, %to, Loop		
 .end_macro
 #######################################################################################
+# macro for, recebe (iterator_reg, start_point, end_point, step, color, macro_label)
+# return none
+.macro for_num (%regIterator1, %regIterator2, %from1, %from2, %to1, %to2, %step1, %step2, %color, %bodyMacroName) ###
+	add %regIterator1, $zero, %from1
+	add %regIterator2, $zero, %from2	
+	Loop:
+	bgt %regIterator2, %to2, Fim_for_num
+	%bodyMacroName (%color, %regIterator1, %regIterator2)
+	add %regIterator1, %regIterator1, %step1
+	add %regIterator2, %regIterator2, %step2	
+	ble %regIterator1, %to1, Loop
+	Fim_for_num:		
+.end_macro
+#######################################################################################
 .macro DrawVLine (%color, %x)
 		lh $t0, stageWidth		# Calculate ending possition{
 		lh $t1, stageHeight		#
@@ -42,7 +57,7 @@
 		
 		add $t0, $zero, %x		# Getting line number to draw
 		sll $t0, $t0, 2			# 	remember, 4 bytes by dot
-		add $t0, $t0, 15360		# This is for Vertical lines starts after 14 horizontal line ( espaço em branco em cima)
+		addi $t0, $t0, 15360		# This is for Vertical lines starts after 14 horizontal line ( espaço em branco em cima)
 		add $t0, $t0, $gp
 DVL_Loop:
 		sw %color, ($t0)		# Loop to paint memory address
@@ -66,6 +81,46 @@ DHL_Loop:					# começa a printar os pixels da linha
 		sw %color, ($t1)
 		add $t1, $t1, 4
 		blt $t1, $t2, DHL_Loop
+		nop
+.end_macro
+#########################################################################################################
+.macro DrawVLine2 (%color, %x, %y, %comp)
+		xor $t0, $t0, $t0
+		xor $t1, $t1, $t1
+		
+		add $t0, $t0, %x		# calculando coordenada x da posicao inicial da linha
+		sll $t0, $t0, 2			# 4 bytes por pixel
+		lh $t1, stageWidth		#
+		sll $t1, $t1, 2
+		mul $t2, $t1, %y		# calculando coordenada y inicial da linha
+		add $t0, $t0, $t2  		# obtendo coordenada final do incio da linha
+		add $t0, $t0, 15360		
+		add $t0, $t0, $gp
+		
+		mul $t2, $t1, %comp
+		add $t2, $t2, $t0
+DVL_Loop2:
+		sw %color, ($t0)		# Loop to paint memory address
+		add $t0, $t0, $t1
+		blt $t0, $t2, DVL_Loop2
+		nop
+.end_macro
+######################################################################################
+.macro DrawHLine2 (%color, %x, %comp)
+		lh $t0, stageWidth		# Calculate ending possition
+		sll $t0, $t0, 2			# Multiply by 4
+
+		li $t1, 1			# %x plus one ( line 1 will be zero)
+		add $t1, $t1, %x		# obtendo posição correspondente a linha (inicio)
+		mul $t2, $t0, $t1		# obtendo posição correspondente a linha (fim)
+
+		sub $t1, $t2, $t0		
+		add $t2, $t2, $gp
+		add $t1, $t1, $gp
+DHL_Loop2:					# começa a printar os pixels da linha
+		sw %color, ($t1)
+		add $t1, $t1, 4
+		blt $t1, $t2, DHL_Loop2
 		nop
 .end_macro
 #########################################################################################################
@@ -116,7 +171,9 @@ Apagando:	sw $s0, ($t0)
 		
 		mul $a1, $s2, $t0			# setando parametros da celula à selecionar
 		mul $a2, $s3, $t1			#
+		lw $s0, BlackColor
 		SelecionaCelula_aux ($s0, $a1, $a2)	# selecionando celula
+		lh $s0, BgColor
 		ApagaCelula ($a1, $a2)
 		nop
 .end_macro
@@ -163,352 +220,352 @@ DVTL_Loop:
 		nop
 .end_macro
 ###############################################################################################################
-.macro number (%x, %coord)
+.macro number (%cor, %x, %coord)
 zero:		
 		bne %x, 48, one
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1012
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim		
 one: 	
 		bne %x, 49, two
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1016
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 two:	bne %x, 50, tree
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 tree: 	
 		bne %x, 51, four	
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1032
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 four:	
 		bne %x, 52, five
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		add $t1, $t1, 6152		
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 five: 	
 		bne %x, 53, six
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		sub $t1, $t1, 4		
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1	
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1	
 		add $t1, $t1, 1008
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 six:	
 		bne %x, 54, seven
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		add $t1, $t1, 1036		
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4	
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 seven: 	
 		bne %x, 55, eight	
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 eight:	
 		bne %x, 56, nine
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 16
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 3072
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 nine:
 	 	bne %x, 57, fim		
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp	 	
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 16
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4096
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 1028
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		add $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1020
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1024
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
-		sw $s1, ($t1)			# Pinta o pixel da posicao s1
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 fim:
 .end_macro
 ###############################################################################################################
@@ -519,14 +576,28 @@ fim:
 	xor $s3, $s2, 0				# Store cel to select s3 => line
 	li $s4, -24
 	# Inicializing Window:
-		lh $a1, stageWidth			# Store WindowWidth in $a1 to pass to for below
-		for ($a0, 0, $a1, 1, $s0, DrawHLine)	# Clear all Display (painting 'stageWidth' white lines)
+		lh $a2, stageWidth			# Store WindowWidth in $a1 to pass to for below
+		for ($a1, 0, $a2, 1, $s0, DrawHLine)	# Clear all Display (painting 'stageWidth' white lines)
 		# Desenhando Linhas Horizontais
-		for ($a0, 14, $a1, 10, $s1, DrawHLine)	# Drawing all Horizontal lines
+		# Borda Esquerda:
+		li $a2, 14
+		lw $s0, GrayColor			# cor da borda esquerda
+		for ($a1, 1, $a2, 1, $s0, DrawVLine) 	# preenchendo Borda esquerda
+		lw $s0, BgColor				# devolvendo cor de $s0 (Branca)
+		# for_num (%regIterator1, %regIterator2, %from1, %from2, %to1, %to2, %step1, %step2, %color, %bodyMacroName) ###
+		for_num ($a1, $a2, 48, 16408, 57, 108568, 1,10240, $s1, number)	# numeros dentro da borda
+		for_num ($a1, $a2, 49, 118796, 49, 210960, 0, 10240, $s1, number)	# numeros dentro da borda
+		for_num ($a1, $a2, 48, 118820, 57, 210984, 1, 10240, $s1, number)	# numeros dentro da borda
+		for_num ($a1, $a2, 50, 221196, 50, 251920, 0, 10240, $s1, number)	# numeros dentro da borda
+		for_num ($a1, $a2, 48, 221220, 52, 251940, 1, 10240, $s1, number)	# numeros dentro da borda
+		# Desenhando grade
+		lh $a2, stageWidth			# Nao remover essa linha daqui, sempre antes do for abaixo
+		for ($a1, 14, $a2, 10, $s1, DrawHLine)	# Drawing all Horizontal lines
 		DrawHLine ($s1, 255)			# Last Line
 		# Desenhando Linhas Verticais
-		for ($a0, 15, $a1, 40, $s1, DrawVLine)	# Drawing all Vertical lines
+		for ($a1, 15, $a2, 40, $s1, DrawVLine)	# Drawing all Vertical lines
 		DrawVLine ($s1, 0)
+		#DrawVLine2 ($s1, 2, 0, 9)
 		# Selecionando Primeira Célula
 		move $a1, $s2
 		move $a2, $s3
@@ -606,7 +677,7 @@ GetKey_num:
 		bge $a0, 58, Main_waitLoop
  		# getting coordinate to print
  		add $s4, $s4, 24		# Atualizando onde vai printar
- 		bge $s4, 144, Exit		# Digitando mais numeros do que é permitido
+ 		bge $s4, 144, OutOfBound		# Digitando mais numeros do que é permitido
  		xor $t0, $t0, $t0		# zerando $t0 para uso
  		xor $t1, $t1, $t1 		# zerando $t1 para uso
  		xor $t3, $t3, $t3		# zerando $t3 para uso
@@ -619,11 +690,11 @@ GetKey_num:
 		add $t2, $t2, $t1		# idem acima
 		add $t2, $t2, $s4		# movendo cursor para proximo digito
 		move $a1, $t2
-print_num: 	number ($a0, $a1)
+print_num: 	number ($s1, $a0, $a1)
 		nop
 		jal Main_waitLoop		# Do nothing
 GetDir_none:
-Exit:   
+OutOfBound:   
 	#play a sound tune to signify game over
 	li $v0, 31
 	li $a0, 28
@@ -648,11 +719,11 @@ Exit:
 	la $a0, BreakCellMsg #get message
 	syscall
 	
-	li $v0, 50 #syscall for yes/no dialog
-	la $a0, replayMessage #get message
-	syscall
+	#li $v0, 50 #syscall for yes/no dialog
+	#la $a0, replayMessage #get message
+	#syscall
 	
-	beqz $a0, Main_waitLoop#jump back to start of program
+	j Main_waitLoop#jump back to start of program
 	#end program
 	li $v0, 10
 	syscall
