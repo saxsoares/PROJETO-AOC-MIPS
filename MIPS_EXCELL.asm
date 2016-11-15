@@ -3,6 +3,7 @@
 #################################################################################
 .kdata
 	BlackColor: 		.word 0x00000000
+	UnknowColor: 		.word 0x33333333
 	DrawColor:		.word 0xFFAAAAAA		# Store colour to draw objects
 	BgColor:		.word 0xFFFFFFFF		# Store colour to draw background
 	GrayColor: 		.word 0x696969
@@ -128,17 +129,23 @@ DHL_Loop2:					# começa a printar os pixels da linha
 		xor $t0, $t0, $t0	# zerando registradores temporarios 
 		xor $t1, $t1, $t1	# zerando registradores temporarios 
 		xor $t2, $t2, $t2	# idem acima
+		xor $t3, $t3, $t3	# zerando registradores temporarios 
+		xor $t4, $t4, $t4	# idem acima
 		lh $t1, CelWidth	# Loading Cel Width
+		lh $t3, CelWidth	# Loading Cel Width
 		sub $t1, $t1, 8
 		lh $t2, CelHeight	# Loading Cel Height
+		lh $t4, CelHeight	# Loading Cel Height
 		sub $t2, $t2, 2048	# menos uma linha
 		lh  $t0, SelectCelBase
 		
 		add $t0, $t0, 1024	# Uma linha abaixo da referencia de selecao ( parte branca )
 		add $t0, $t0, 4		# um pixel a direita da referencia de selecao (parte branca)
 		
-		add $t0, $t0, %x1	# somando a t0 valor de referencia da coluna da celula a apagar
-		add $t0, $t0, %x2	# somando a t0 valor de referencia da linha da celula a apagar
+		mul $t3, $t3, %x1
+		mul $t4, $t4, %x2
+		add $t0, $t0, $t3	# somando a t0 valor de referencia da coluna da celula a apagar
+		add $t0, $t0, $t4	# somando a t0 valor de referencia da linha da celula a apagar
 		add $t0, $t0, $gp	# somando ponteiro global (referencia da tela)
 		
 		add $t4, $t0, $t1
@@ -174,7 +181,6 @@ Apagando:	sw $s0, ($t0)
 		lw $s0, BlackColor
 		SelecionaCelula_aux ($s0, $a1, $a2)	# selecionando celula
 		lh $s0, BgColor
-		ApagaCelula ($a1, $a2)
 		nop
 .end_macro
 ###############################################################################################################
@@ -575,6 +581,7 @@ fim:
 	xor $s2, $s2, 0				# Store cel to select s2 => colum
 	xor $s3, $s2, 0				# Store cel to select s3 => line
 	li $s4, -24
+	li $s5, 0
 	# Inicializing Window:
 		lh $a2, stageWidth			# Store WindowWidth in $a1 to pass to for below
 		for ($a1, 0, $a2, 1, $s0, DrawHLine)	# Clear all Display (painting 'stageWidth' white lines)
@@ -657,6 +664,7 @@ GetDir_down:
 		nop
 GetKey_done:
 		li $s4, -24			# parametro referencia para inicio de impressao de numeros teclados
+		li $s5, 0
 		bge $s2, $zero, GetKey_done_1	# se s2 nao for maior que zero
 		li $s2, 5			# entao deve ser a ultima coluna
 		j GetKey_done_2			# va para verificacao de linhas agora
@@ -678,7 +686,11 @@ GetKey_num:
  		# getting coordinate to print
  		add $s4, $s4, 24		# Atualizando onde vai printar
  		bge $s4, 144, OutOfBound		# Digitando mais numeros do que é permitido
- 		xor $t0, $t0, $t0		# zerando $t0 para uso
+ 		beq $s5, 1, JumpAux1		# Verifica Se é a primeira vez que está na célula, se for, apaga
+		ApagaCelula ($s2, $s3)
+		li $s5, 1
+JumpAux1: 	
+		xor $t0, $t0, $t0		# zerando $t0 para uso
  		xor $t1, $t1, $t1 		# zerando $t1 para uso
  		xor $t3, $t3, $t3		# zerando $t3 para uso
  		lh $t0, CelWidth		# carregando valores para uso
@@ -690,8 +702,10 @@ GetKey_num:
 		add $t2, $t2, $t1		# idem acima
 		add $t2, $t2, $s4		# movendo cursor para proximo digito
 		move $a1, $t2
+		lw $s1, UnknowColor
 print_num: 	number ($s1, $a0, $a1)
 		nop
+		lw $s1, DrawColor
 		jal Main_waitLoop		# Do nothing
 GetDir_none:
 OutOfBound:   
