@@ -85,20 +85,20 @@ DHL_Loop:					# começa a printar os pixels da linha
 		nop
 .end_macro
 #########################################################################################################
-.macro DrawVLine2 (%color, %x, %y, %comp)
+.macro DrawVLine2 (%color, %x)
 		xor $t0, $t0, $t0
 		xor $t1, $t1, $t1
 		
 		add $t0, $t0, %x		# calculando coordenada x da posicao inicial da linha
-		sll $t0, $t0, 2			# 4 bytes por pixel
+		#sll $t0, $t0, 2			# 4 bytes por pixel
 		lh $t1, stageWidth		#
 		sll $t1, $t1, 2
-		mul $t2, $t1, %y		# calculando coordenada y inicial da linha
-		add $t0, $t0, $t2  		# obtendo coordenada final do incio da linha
-		add $t0, $t0, 15360		
-		add $t0, $t0, $gp
+		#mul $t2, $t1, %y		# calculando coordenada y inicial da linha
+		#add $t0, $t0, $t2  		# obtendo coordenada final do incio da linha
+		#add $t0, $t0, 15360		
+		#add $t0, $t0, $gp
 		
-		mul $t2, $t1, %comp
+		mul $t2, $t1, 7
 		add $t2, $t2, $t0
 DVL_Loop2:
 		sw %color, ($t0)		# Loop to paint memory address
@@ -574,6 +574,16 @@ nine:
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 fim:
 .end_macro
+##############################################################################################################
+.macro BackSpaceM (%x)
+		add $t1, $zero, %x
+		add $t1, $t1, $gp
+		add $t2, $t1, 20
+		move $a2, $t1
+		move $a3, $t2
+		for($a1, $a2, $a3, 4, $s0, DrawVLine2)
+	
+.end_macro
 ###############################################################################################################
 .text
 	lw $s1, DrawColor 			# Store drawing colour in s6
@@ -681,6 +691,7 @@ GetKey_done_4:
 		jr $ra				# Return
 		nop
 GetKey_num:	
+		beq, $a0, 8, Backspace
 		ble, $a0, 47, Main_waitLoop
 		bge $a0, 58, Main_waitLoop
  		# getting coordinate to print
@@ -707,7 +718,25 @@ print_num: 	number ($s1, $a0, $a1)
 		nop
 		lw $s1, DrawColor
 		jal Main_waitLoop		# Do nothing
+Backspace:
+		xor $t0, $t0, $t0		# zerando $t0 para uso
+ 		xor $t1, $t1, $t1 		# zerando $t1 para uso
+ 		xor $a1, $a1, $a1		# zerando $t3 para uso
+ 		lh $t0, CelWidth		# carregando valores para uso
+ 		lh $t1, CelHeight
+		lh $t2, BasePrintCel		# carregando referencia inicial para impressao
+ 		mul $t0, $s2, $t0		# msm calculo da celula selecionada, adquirindo coordenada onde apagar
+		mul $t1, $s3, $t1		# msm calculo da celula selecionada, adquirindo coordenada onde apagar
+		add $t2, $t2, $t0		# com isso apagamos na celula selecionada
+		add $t2, $t2, $t1		# idem acima
+		add $t2, $t2, $s4		# movendo cursor para digito atual
+		sub $t2, $t2, 4
+		move $a1, $t2			# padronização: passar parametros pelos registradores $a
+		BackSpaceM ($a1)
+		sub $s4, $s4, 24		# como apagamos um digito, volta cursor
+		jal Main_waitLoop		# Do nothing
 GetDir_none:
+		jal Main_waitLoop		# Do nothing
 OutOfBound:   
 	#play a sound tune to signify game over
 	li $v0, 31
