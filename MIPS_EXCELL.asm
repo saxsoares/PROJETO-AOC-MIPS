@@ -719,6 +719,7 @@ print_num: 	number ($s1, $a0, $a1)
 		lw $s1, DrawColor
 		jal Main_waitLoop		# Do nothing
 Backspace:
+		beq $s4, -24, Main_waitLoop
 		xor $t0, $t0, $t0		# zerando $t0 para uso
  		xor $t1, $t1, $t1 		# zerando $t1 para uso
  		xor $a1, $a1, $a1		# zerando $t3 para uso
