@@ -30,7 +30,7 @@
 	ble %regIterator, %to, Loop		
 .end_macro
 #######################################################################################
-# macro for, recebe (iterator_reg, start_point, end_point, step, color, macro_label)
+# macro for, recebe (iterator_reg, start_point1, start_point2, end_point1, end_point2, step1, step2, color, macro_label)
 # return none
 .macro for_num (%regIterator1, %regIterator2, %from1, %from2, %to1, %to2, %step1, %step2, %color, %bodyMacroName) ###
 	add %regIterator1, $zero, %from1
@@ -58,7 +58,7 @@
 		
 		add $t0, $zero, %x		# Getting line number to draw
 		sll $t0, $t0, 2			# 	remember, 4 bytes by dot
-		addi $t0, $t0, 15360		# This is for Vertical lines starts after 14 horizontal line ( espaço em branco em cima)
+		addi $t0, $t0, 7168		# This is for Vertical lines starts after 14 horizontal line ( espaï¿½o em branco em cima)
 		add $t0, $t0, $gp
 DVL_Loop:
 		sw %color, ($t0)		# Loop to paint memory address
@@ -72,13 +72,13 @@ DVL_Loop:
 		sll $t0, $t0, 2			# Multiply by 4
 
 		li $t1, 1			# %x plus one ( line 1 will be zero)
-		add $t1, $t1, %x		# obtendo posição correspondente a linha (inicio)
-		mul $t2, $t0, $t1		# obtendo posição correspondente a linha (fim)
+		add $t1, $t1, %x		# obtendo posiï¿½ï¿½o correspondente a linha (inicio)
+		mul $t2, $t0, $t1		# obtendo posiï¿½ï¿½o correspondente a linha (fim)
 
 		sub $t1, $t2, $t0		
 		add $t2, $t2, $gp
 		add $t1, $t1, $gp
-DHL_Loop:					# começa a printar os pixels da linha
+DHL_Loop:					# comeï¿½a a printar os pixels da linha
 		sw %color, ($t1)
 		add $t1, $t1, 4
 		blt $t1, $t2, DHL_Loop
@@ -93,11 +93,6 @@ DHL_Loop:					# começa a printar os pixels da linha
 		#sll $t0, $t0, 2			# 4 bytes por pixel
 		lh $t1, stageWidth		#
 		sll $t1, $t1, 2
-		#mul $t2, $t1, %y		# calculando coordenada y inicial da linha
-		#add $t0, $t0, $t2  		# obtendo coordenada final do incio da linha
-		#add $t0, $t0, 15360		
-		#add $t0, $t0, $gp
-		
 		mul $t2, $t1, 7
 		add $t2, $t2, $t0
 DVL_Loop2:
@@ -112,13 +107,13 @@ DVL_Loop2:
 		sll $t0, $t0, 2			# Multiply by 4
 
 		li $t1, 1			# %x plus one ( line 1 will be zero)
-		add $t1, $t1, %x		# obtendo posição correspondente a linha (inicio)
-		mul $t2, $t0, $t1		# obtendo posição correspondente a linha (fim)
+		add $t1, $t1, %x		# obtendo posiï¿½ï¿½o correspondente a linha (inicio)
+		mul $t2, $t0, $t1		# obtendo posiï¿½ï¿½o correspondente a linha (fim)
 
 		sub $t1, $t2, $t0		
 		add $t2, $t2, $gp
 		add $t1, $t1, $gp
-DHL_Loop2:					# começa a printar os pixels da linha
+DHL_Loop2:					# comeï¿½a a printar os pixels da linha
 		sw %color, ($t1)
 		add $t1, $t1, 4
 		blt $t1, $t2, DHL_Loop2
@@ -160,7 +155,7 @@ Apagando:	sw $s0, ($t0)
 		nop
 .end_macro
 #########################################################################################################
-.macro SelecionaCelula		# Recebe novos valores de $s1 e $s0, (pra onde irá "andar" )
+.macro SelecionaCelula		# Recebe novos valores de $s1 e $s0, (pra onde irï¿½ "andar" )
 		xor $t0, $t0, $t0	# zerando registradores temporarios 
 		xor $t1, $t1, $t1	# idem acima
 		lh $t0, CelWidth	# Loading Cel Width
@@ -168,7 +163,7 @@ Apagando:	sw $s0, ($t0)
 		
 		mul $a1, $a1, $t0	# settando paramentros da celula a apagar
 		mul $a2, $a2, $t1	#
-		SelecionaCelula_aux ($s1, $a1, $a2)	# apaga seleção anterior
+		SelecionaCelula_aux ($s1, $a1, $a2)	# apaga seleï¿½ï¿½o anterior
 		nop
 		
 		xor $t0, $t0, $t0	# zerando registradores temporarios (podem ter sido alterados na chamada acima
@@ -176,7 +171,7 @@ Apagando:	sw $s0, ($t0)
 		lh $t0, CelWidth	# Loading Cel Width
 		lh $t1, CelHeight	# Loading Cel Height
 		
-		mul $a1, $s2, $t0			# setando parametros da celula à selecionar
+		mul $a1, $s2, $t0			# setando parametros da celula ï¿½ selecionar
 		mul $a2, $s3, $t1			#
 		lw $s0, BlackColor
 		SelecionaCelula_aux ($s0, $a1, $a2)	# selecionando celula
@@ -199,11 +194,11 @@ Apagando:	sw $s0, ($t0)
 		add $t0, $t0, %x2		# %x2 guarda a referencia para  a linha da celula a selecionar/deselecionar
 		add $t0, $t0, $gp		# Adicionando global point( referencia para tela )
 		
-		move $t3, $t0			# fazendo backup do valor de $a1, ele é necessário para o segundo loot0
-		add $t3, $t3, $t7		# As linhas verticais começa um pixel abaixo da linha horizontal
+		move $t3, $t0			# fazendo backup do valor de $a1, ele ï¿½ necessï¿½rio para o segundo loot0
+		add $t3, $t3, $t7		# As linhas verticais comeï¿½a um pixel abaixo da linha horizontal
 		
 		add $t4, $t0, $t2		# $t4 pinta a linha de baixo, por isso $t0 + $t2(altura da celula)
-		add $t5, $t0, $t1		# $t5 é o parametro de parada do loop por isso t1 + t1(altura da celula)
+		add $t5, $t0, $t1		# $t5 ï¿½ o parametro de parada do loop por isso t1 + t1(altura da celula)
 DHLT_Loop:
 		sw %sx, ($t0)			# esse loop desenha as linhas tracejadas horizontais
 		sw %sx, ($t4)			#
@@ -264,7 +259,7 @@ zero:
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 1028
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
-		jal fim		
+		j fim		
 one: 	
 		bne %x, 49, two
 		add $t1, $zero, %coord
@@ -536,7 +531,7 @@ eight:
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		jal fim
 nine:
-	 	bne %x, 57, fim		
+	 	bne %x, 57, letraa		
 		add $t1, $zero, %coord
 		add $t1, $t1, $gp	 	
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
@@ -572,6 +567,358 @@ nine:
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
 		sub $t1, $t1, 4
 		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		jal fim
+
+letraa:		
+		bne %x, 65, letrab
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		#add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)
+		add $t1, $t1, 16
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		jal fim		
+		
+letrab:		
+		bne %x, 66, letrac
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		sub $t1, $t1, 1020
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 2048
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		jal fim		
+				
+letrac:		
+		bne %x, 67, letrad
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1008
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1028
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		jal fim		
+
+letrad:		
+		bne %x, 68, letrae
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1020
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		jal fim		
+
+letrae:		
+		bne %x, 69, letraf
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1008
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		jal fim		
+		
+letraf:		
+		bne %x, 70, letrag
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1008
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		jal fim			
+letrag:		
+		bne %x, 71, letrah
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1008
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 4
+		sw %cor, ($t1)
+		sub $t1, $t1, 4
+		sw %cor, ($t1)		
+		jal fim		
+		
+letrah:		
+		bne %x, 72, letrai
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sub $t1, $t1, 4
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 1012
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)
+		add $t1, $t1, 16
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		sub $t1, $t1, 1024
+		sw %cor, ($t1)
+		jal fim		
+
+letrai:		
+		bne %x, 73, fim
+		add $t1, $zero, %coord
+		add $t1, $t1, $gp
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 1020
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)			# Pinta o pixel da posicao s1
+		add $t1, $t1, 1024
+		sw %cor, ($t1)
+		add $t1, $t1, 1020
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		add $t1, $t1, 4
+		sw %cor, ($t1)
+		jal fim				
 fim:
 .end_macro
 ##############################################################################################################
@@ -600,6 +947,8 @@ fim:
 		li $a2, 14
 		lw $s0, GrayColor			# cor da borda esquerda
 		for ($a1, 1, $a2, 1, $s0, DrawVLine) 	# preenchendo Borda esquerda
+		li $a2, 13
+		for ($a1, 6, $a2, 1, $s0, DrawHLine)
 		lw $s0, BgColor				# devolvendo cor de $s0 (Branca)
 		# for_num (%regIterator1, %regIterator2, %from1, %from2, %to1, %to2, %step1, %step2, %color, %bodyMacroName) ###
 		for_num ($a1, $a2, 48, 16408, 57, 108568, 1,10240, $s1, number)	# numeros dentro da borda
@@ -607,6 +956,9 @@ fim:
 		for_num ($a1, $a2, 48, 118820, 57, 210984, 1, 10240, $s1, number)	# numeros dentro da borda
 		for_num ($a1, $a2, 50, 221196, 50, 251920, 0, 10240, $s1, number)	# numeros dentro da borda
 		for_num ($a1, $a2, 48, 221220, 52, 251940, 1, 10240, $s1, number)	# numeros dentro da borda
+		# Barra superior
+		DrawHLine($s1, 6)
+		for_num ($a1, $a2, 65, 7304, 70, 20000, 1, 160, $s1, number)	# numeros dentro da borda
 		# Desenhando grade
 		lh $a2, stageWidth			# Nao remover essa linha daqui, sempre antes do for abaixo
 		for ($a1, 14, $a2, 10, $s1, DrawHLine)	# Drawing all Horizontal lines
@@ -614,8 +966,7 @@ fim:
 		# Desenhando Linhas Verticais
 		for ($a1, 15, $a2, 40, $s1, DrawVLine)	# Drawing all Vertical lines
 		DrawVLine ($s1, 0)
-		#DrawVLine2 ($s1, 2, 0, 9)
-		# Selecionando Primeira Célula
+		# Selecionando Primeira Cï¿½lula
 		move $a1, $s2
 		move $a2, $s3
 		SelecionaCelula
@@ -678,7 +1029,7 @@ GetKey_done:
 		bge $s2, $zero, GetKey_done_1	# se s2 nao for maior que zero
 		li $s2, 5			# entao deve ser a ultima coluna
 		j GetKey_done_2			# va para verificacao de linhas agora
-GetKey_done_1:	blt $s2, 6, GetKey_done_2	# Se s2 não for menor que numeros de colunas
+GetKey_done_1:	blt $s2, 6, GetKey_done_2	# Se s2 nï¿½o for menor que numeros de colunas
 		li $s2, 0			# entao deve ser a primeira coluna
 GetKey_done_2:  bge $s3, $zero, GetKey_done_3	# Se s3 nao for maior que zero
 		li $s3, 23			# entao deve ser a ultima linha
@@ -691,13 +1042,16 @@ GetKey_done_4:
 		jr $ra				# Return
 		nop
 GetKey_num:	
-		beq, $a0, 8, Backspace
-		ble, $a0, 47, Main_waitLoop
-		bge $a0, 58, Main_waitLoop
+		beq $a0, 8, Backspace		# Verificando teclas: essa linha somente para o backspace
+		ble $a0, 47, Main_waitLoop	# Verificando se a tecla pressionada esta entre
+		bgt $a0, 57, TeclaLetra
+		jal TeclaAceita
+TeclaLetra: 	ble $a0, 64, Main_waitLoop
+		bge $a0, 74, Main_waitLoop	# os valores de 0 a 9 ou A a I
  		# getting coordinate to print
- 		add $s4, $s4, 24		# Atualizando onde vai printar
- 		bge $s4, 144, OutOfBound		# Digitando mais numeros do que é permitido
- 		beq $s5, 1, JumpAux1		# Verifica Se é a primeira vez que está na célula, se for, apaga
+TeclaAceita: 	add $s4, $s4, 24		# Atualizando onde vai printar
+ 		bge $s4, 144, OutOfBound		# Digitando mais numeros do que ï¿½ permitido
+ 		beq $s5, 1, JumpAux1		# Verifica Se ï¿½ a primeira vez que estï¿½ na cï¿½lula, se for, apaga
 		ApagaCelula ($s2, $s3)
 		li $s5, 1
 JumpAux1: 	
@@ -732,7 +1086,7 @@ Backspace:
 		add $t2, $t2, $t1		# idem acima
 		add $t2, $t2, $s4		# movendo cursor para digito atual
 		sub $t2, $t2, 4
-		move $a1, $t2			# padronização: passar parametros pelos registradores $a
+		move $a1, $t2			# padronizaï¿½ï¿½o: passar parametros pelos registradores $a
 		BackSpaceM ($a1)
 		sub $s4, $s4, 24		# como apagamos um digito, volta cursor
 		jal Main_waitLoop		# Do nothing
